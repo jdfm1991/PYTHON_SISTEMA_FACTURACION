@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from app.config import Config
 import requests
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -53,16 +54,28 @@ class ResultadoImpresion:
 class FiscalClient:
     """Cliente HTTP del agente fiscal."""
 
-    def __init__(self, base_url: str | None = None, timeout: int | None = None):
+    def __init__(self, base_url=None, timeout=None, token=None):
         self.base_url = (base_url or Config.FISCAL_AGENT_URL).rstrip("/")
         self.timeout = timeout or Config.FISCAL_AGENT_TIMEOUT
+        self.token = token or Config.FISCAL_AGENT_TOKEN
+
+    def _headers(self) -> dict:
+        """Headers comunes para todas las peticiones."""
+        return {
+            "X-Agent-Token": self.token,
+            "X-Request-Id": str(uuid.uuid4())[:8],
+        }
 
     # --- Health check ---
 
     def health(self) -> bool:
         """Verifica que el agente esté corriendo (sin verificar impresora)."""
         try:
-            r = requests.get(f"{self.base_url}/health", timeout=3)
+            r = requests.get(
+                f"{self.base_url}/health",
+                headers=self._headers(),
+                timeout=3,
+            )
             return r.status_code == 200
         except requests.RequestException:
             return False
@@ -70,7 +83,11 @@ class FiscalClient:
     def estado_formateado(self) -> dict | None:
         """Obtiene el estado del agente y la impresora."""
         try:
-            r = requests.get(f"{self.base_url}/estado-formateado", timeout=self.timeout)
+            r = requests.get(
+                f"{self.base_url}/estado-formateado",
+                headers=self._headers(),
+                timeout=self.timeout,
+            )
             if r.status_code == 200:
                 return r.json()
             return None
@@ -86,6 +103,7 @@ class FiscalClient:
             r = requests.post(
                 f"{self.base_url}/imprimir-factura",
                 json=payload,
+                headers=self._headers(),
                 timeout=self.timeout,
             )
 
@@ -113,8 +131,8 @@ class FiscalClient:
                         serie=None,
                         numero_maquina=numero_maquina,
                         mensaje=(
-                            mensaje or
-                            "Factura emitida pero no se pudo leer el número fiscal."
+                            mensaje
+                            or "Factura emitida pero no se pudo leer el número fiscal."
                         ),
                     )
                 else:
@@ -134,9 +152,7 @@ class FiscalClient:
                 except Exception:
                     error_msg = r.text
 
-                logger.error(
-                    f"Agente fiscal devolvió {r.status_code}: {error_msg}"
-                )
+                logger.error(f"Agente fiscal devolvió {r.status_code}: {error_msg}")
                 return ResultadoImpresion(
                     estado=EstadoImpresion.ERROR_AGENTE,
                     numero_fiscal=None,

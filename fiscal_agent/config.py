@@ -35,3 +35,11 @@ class Config:
 
     # --- SDK ---
     VENDOR_DIR = _agent_dir / "vendor"
+    
+        # --- Autenticación ---
+    AGENT_TOKEN = os.getenv("AGENT_TOKEN", "dev-token-cambiar-en-produccion")
+
+    # --- Timeouts ---
+    PRINTER_TIMEOUT = int(os.getenv("PRINTER_TIMEOUT", "30"))
+    PRINTER_MAX_RETRIES = int(os.getenv("PRINTER_MAX_RETRIES", "3"))
+    PRINTER_RETRY_DELAY = float(os.getenv("PRINTER_RETRY_DELAY", "1.0"))

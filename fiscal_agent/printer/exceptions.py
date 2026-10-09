@@ -24,3 +24,7 @@ class PrinterCommandError(FiscalError):
 
 class PrinterTimeoutError(FiscalError):
     """Timeout esperando respuesta de la impresora."""
+    
+    
+class PrinterTimeoutError(FiscalError):
+    """Timeout esperando respuesta de la impresora."""

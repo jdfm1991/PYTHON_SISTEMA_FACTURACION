@@ -48,6 +48,8 @@ class Config:
     # --- Agente fiscal ---
     FISCAL_AGENT_URL = os.getenv("FISCAL_AGENT_URL", "http://127.0.0.1:5001")
     FISCAL_AGENT_TIMEOUT = int(os.getenv("FISCAL_AGENT_TIMEOUT", "10"))
+    
+    FISCAL_AGENT_TOKEN = os.getenv("FISCAL_AGENT_TOKEN", "dev-token-cambiar")
 
 
 class TestConfig(Config):

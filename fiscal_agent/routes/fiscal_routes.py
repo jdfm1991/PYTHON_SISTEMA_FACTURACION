@@ -1,5 +1,6 @@
 """Rutas HTTP del agente fiscal."""
 
+from fiscal_agent.auth import requiere_token
 import logging
 from dataclasses import asdict
 
@@ -38,19 +39,24 @@ def health():
             response["printer"] = {
                 "is_ready": status.is_ready,
                 "puede_imprimir": status.puede_imprimir,
+                "modo": status.modo,
                 "error_code": status.error_code,
                 "error_description": status.error_description,
             }
+            if not status.is_ready:
+                response["status"] = "degraded"
         except FiscalError as e:
             response["printer"] = {
                 "is_ready": False,
                 "error": str(e),
             }
+            response["status"] = "unhealthy"
 
     return jsonify(response), 200
 
 
 @fiscal_bp.route("/estado", methods=["GET"])
+@requiere_token
 def estado():
     """Devuelve el estado crudo de la impresora."""
     try:
@@ -79,6 +85,7 @@ def estado():
 
 
 @fiscal_bp.route("/estado-formateado", methods=["GET"])
+@requiere_token
 def estado_formateado():
     """Devuelve el estado con flags derivados para decisión del cliente."""
     try:
@@ -131,6 +138,7 @@ def estado_formateado():
 
 
 @fiscal_bp.route("/info", methods=["GET"])
+@requiere_token
 def info():
     """Devuelve la información S1 de la impresora."""
     try:
@@ -159,6 +167,7 @@ def info():
 
 
 @fiscal_bp.route("/reset", methods=["POST"])
+@requiere_token
 def reset():
     """Cierra y reabre la conexión con la impresora."""
     try:
@@ -187,6 +196,7 @@ def reset():
 
 
 @fiscal_bp.route("/comandos-permitidos", methods=["GET"])
+@requiere_token
 def comandos_permitidos():
     """Lista los comandos crudos permitidos."""
     return (
@@ -201,6 +211,7 @@ def comandos_permitidos():
 
 
 @fiscal_bp.route("/comando", methods=["POST"])
+@requiere_token
 def comando():
     """Envía un comando crudo (whitelist)."""
     data = request.get_json(silent=True) or {}
@@ -256,6 +267,7 @@ def comando():
 
 
 @fiscal_bp.route("/imprimir-texto", methods=["POST"])
+@requiere_token
 def imprimir_texto():
     """Imprime un texto simple (Documento No Fiscal).
 
@@ -331,6 +343,7 @@ def imprimir_texto():
 
 
 @fiscal_bp.route("/imprimir-factura", methods=["POST"])
+@requiere_token
 def imprimir_factura_endpoint():
     """Imprime una factura fiscal completa.
 
@@ -432,6 +445,7 @@ def imprimir_factura_endpoint():
 
 
 @fiscal_bp.route("/cancelar-transaccion", methods=["POST"])
+@requiere_token
 def cancelar_transaccion():
     """Cancela una transacción fiscal pendiente."""
     try:
@@ -448,6 +462,7 @@ def cancelar_transaccion():
             200,
         )
     except FiscalError as e:
+        logger.error(f"Error al cancelar transacción: {e}")
         return (
             jsonify(
                 {

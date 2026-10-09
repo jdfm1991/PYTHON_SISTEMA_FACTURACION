@@ -196,6 +196,7 @@ class HKAPrinter(FiscalPrinter):
     def imprimir_texto_simple(self, texto: str) -> None:
         """Imprime texto simple como Documento No Fiscal."""
         self._ensure_open()
+        self._verificar_listo()
 
         logger.debug(f"Imprimiendo texto: {texto!r}")
 
@@ -211,6 +212,8 @@ class HKAPrinter(FiscalPrinter):
         ADVERTENCIA: verificar el comando en el manual de la impresora.
         """
         self._ensure_open()
+        self._verificar_listo()
+        
         logger.debug(f"Avanzando {lineas} líneas de papel")
         for _ in range(lineas):
             try:
@@ -226,6 +229,8 @@ class HKAPrinter(FiscalPrinter):
         Algunos modelos no soportan corte total.
         """
         self._ensure_open()
+        self._verificar_listo() 
+        
         logger.debug("Cortando papel")
         try:
             self._printer.SendCmd(CMD_CORTE_PARCIAL)
@@ -268,7 +273,7 @@ class HKAPrinter(FiscalPrinter):
     def imprimir_factura(self, cliente, lineas, pagos):
         """Imprime una factura fiscal completa."""
         self._ensure_open()
-        self._verificar_lista() 
+        self._verificar_lista()
 
         logger.info("=== INICIO DE IMPRESIÓN DE FACTURA ===")
 
@@ -282,13 +287,13 @@ class HKAPrinter(FiscalPrinter):
         if len(partes) >= 2:
             codigo = partes[0].strip()
             error_code = partes[1].strip()
-            
+
             if codigo != "4":
                 raise PrinterNotReadyError(
                     status=codigo,
                     message=f"La impresora no está lista. Estado: {status_antes}",
                 )
-            
+
             if error_code != "0":
                 raise PrinterNotReadyError(
                     status=error_code,
@@ -417,34 +422,53 @@ class HKAPrinter(FiscalPrinter):
         except Exception as e:
             logger.error(f"Error al cancelar transacción: {e}")
             return False
-        
-        
+
     def _verificar_lista(self) -> None:
         """Verifica que la impresora esté lista para operar.
-        
+
         Lanza PrinterNotReadyError si hay error.
         """
         status_raw = self._printer.ReadFpStatus()
         partes = status_raw.split("   ")
         if len(partes) < 2:
-            raise PrinterCommandError(
-                f"Formato de estado inesperado: {status_raw!r}"
-            )
-        
+            raise PrinterCommandError(f"Formato de estado inesperado: {status_raw!r}")
+
         codigo = partes[0].strip()
         error_code = partes[1].strip()
         error_desc = partes[2].strip() if len(partes) >= 3 else ""
-        
+
         if codigo not in _READY_STATUS_CODES:
             raise PrinterNotReadyError(
                 status=codigo,
                 message=f"Estado no listo: {status_raw}",
             )
-        
+
         if error_code != "0":
             raise PrinterNotReadyError(
                 status=error_code,
                 message=f"Error activo: {error_desc}",
+            )
+
+    def _verificar_listo(self) -> None:
+        """Verifica que la impresora esté lista para operar.
+
+        Lanza PrinterNotReadyError si hay error o no está en modo fiscal.
+        """
+        try:
+            status = self.get_status()
+        except Exception as e:
+            raise PrinterNotReadyError(
+                status="error_lectura",
+                message=f"No se pudo leer el estado: {e}",
+            ) from e
+
+        if not status.is_ready:
+            raise PrinterNotReadyError(
+                status=status.code,
+                message=(
+                    f"Impresora no lista. Estado: {status.description}. "
+                    f"Error: {status.error_description}"
+                ),
             )
 
 
