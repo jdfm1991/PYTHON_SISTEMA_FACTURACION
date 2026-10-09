@@ -1,0 +1,51 @@
+<tr id="producto-{{ producto.id }}" class="border-t border-gray-100">
+    <td class="px-4 py-2 font-mono text-xs text-gray-700">
+        {{ producto.codigo }}
+    </td>
+    <td class="px-4 py-2 font-medium text-gray-900">
+        {{ producto.nombre }}
+    </td>
+    <td class="px-4 py-2 text-right">
+        {{ "%.4f"|format(producto.precio_usd) }}
+    </td>
+    <td class="px-4 py-2 text-xs text-gray-600">
+        {{ producto.alicuota_iva.codigo }} ({{ producto.alicuota_iva.porcentaje }}%)
+    </td>
+    <td class="px-4 py-2 text-right">
+        {% set stock = producto.stock_actual %}
+        {% set minimo = producto.stock_minimo %}
+        {% if minimo is not none and stock <= minimo %} <span class="text-red-600 font-medium">
+            ⚠ {{ "%.3f"|format(stock) }}
+            </span>
+            {% elif stock == 0 %}
+            <span class="text-gray-400">{{ "%.3f"|format(stock) }}</span>
+            {% else %}
+            <span class="text-gray-900">{{ "%.3f"|format(stock) }}</span>
+            {% endif %}
+    </td>
+    <td class="px-4 py-2 text-center">
+        {% if producto.activo %}
+        <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Activo</span>
+        {% else %}
+        <span class="px-2 py-1 text-xs rounded bg-gray-200 text-gray-700">Inactivo</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-2 text-right">
+        <a href="{{ url_for('productos.editar', producto_id=producto.id) }}"
+            class="text-blue-600 hover:underline text-xs">Editar</a>
+
+        {% if producto.activo %}
+        <button hx-post="{{ url_for('productos.desactivar', producto_id=producto.id) }}"
+            hx-target="#producto-{{ producto.id }}" hx-swap="outerHTML" hx-confirm="¿Desactivar este producto?"
+            class="ml-3 text-red-600 hover:underline text-xs">
+            Desactivar
+        </button>
+        {% else %}
+        <button hx-post="{{ url_for('productos.activar', producto_id=producto.id) }}"
+            hx-target="#producto-{{ producto.id }}" hx-swap="outerHTML"
+            class="ml-3 text-green-600 hover:underline text-xs">
+            Reactivar
+        </button>
+        {% endif %}
+    </td>
+</tr>

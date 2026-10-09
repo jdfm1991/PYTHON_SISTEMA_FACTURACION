@@ -1,0 +1,6 @@
+/* Ajustes personalizados por encima de Tailwind.
+   Mantener al mínimo: Tailwind debería cubrir el 95% del estilo. */
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

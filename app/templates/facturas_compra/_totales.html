@@ -1,0 +1,38 @@
+<div class="bg-white rounded shadow p-4 flex justify-end">
+    <div class="w-full max-w-sm space-y-2 text-sm">
+        <div class="flex justify-between">
+            <span class="text-gray-600">Subtotal USD:</span>
+            <span class="font-medium">{{ "%.4f"|format(factura.subtotal_usd) }}</span>
+        </div>
+        {% if factura.descuento_global_porcentaje or factura.descuento_global_monto_usd %}
+            <div class="flex justify-between text-red-600">
+                <span>Descuento global:</span>
+                <span>
+                    {% if factura.descuento_global_porcentaje %}
+                        {{ factura.descuento_global_porcentaje }}%
+                    {% else %}
+                        -{{ "%.4f"|format(factura.descuento_global_monto_usd) }} USD
+                    {% endif %}
+                </span>
+            </div>
+        {% endif %}
+        <div class="flex justify-between">
+            <span class="text-gray-600">Base imponible:</span>
+            <span>{{ "%.4f"|format(factura.base_imponible_usd) }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-600">IVA:</span>
+            <span>{{ "%.4f"|format(factura.iva_usd) }}</span>
+        </div>
+        <div class="flex justify-between border-t border-gray-200 pt-2 text-base font-bold">
+            <span>Total USD:</span>
+            <span>{{ "%.4f"|format(factura.total_usd) }}</span>
+        </div>
+        <div class="flex justify-between text-xs text-gray-500">
+            <span>Total VES:</span>
+            <span>{{ "%.4f"|format(factura.total_ves) }}</span>
+        </div>
+
+        {% include "facturas_compra/_descuento_global.html" %}
+    </div>
+</div>

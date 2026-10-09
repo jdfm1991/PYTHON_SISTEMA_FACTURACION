@@ -1,0 +1,56 @@
+<div class="bg-white rounded shadow overflow-hidden mb-4">
+    <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+            <tr>
+                <th class="px-3 py-2 text-left">Código</th>
+                <th class="px-3 py-2 text-left">Producto</th>
+                <th class="px-3 py-2 text-right">Cantidad</th>
+                <th class="px-3 py-2 text-right">Precio USD</th>
+                <th class="px-3 py-2 text-right">Descuento</th>
+                <th class="px-3 py-2 text-right">IVA</th>
+                <th class="px-3 py-2 text-right">Total USD</th>
+                <th class="px-3 py-2"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in factura.detalles %}
+                <tr class="border-t border-gray-100">
+                    <td class="px-3 py-2 font-mono text-xs">{{ detalle.codigo_producto }}</td>
+                    <td class="px-3 py-2">{{ detalle.nombre_producto }}</td>
+                    <td class="px-3 py-2 text-right">
+                        <input type="number" step="0.001" min="0.001"
+                               value="{{ detalle.cantidad }}"
+                               class="w-24 border border-gray-300 rounded px-2 py-1 text-right text-sm"
+                               hx-post="{{ url_for('facturas_venta.cambiar_cantidad',
+                                                   factura_id=factura.id, detalle_id=detalle.id) }}"
+                               hx-trigger="change"
+                               hx-target="#factura-actualizable"
+                               hx-swap="outerHTML"
+                               hx-include="this"
+                               name="cantidad">
+                    </td>
+                    <td class="px-3 py-2 text-right">{{ "%.4f"|format(detalle.precio_unitario_usd) }}</td>
+                    <td class="px-3 py-2 text-right">{{ "%.4f"|format(detalle.descuento_monto_usd or 0) }}</td>
+                    <td class="px-3 py-2 text-right">{{ "%.4f"|format(detalle.iva_usd) }}</td>
+                    <td class="px-3 py-2 text-right font-medium">{{ "%.4f"|format(detalle.total_usd) }}</td>
+                    <td class="px-3 py-2 text-right">
+                        <button hx-post="{{ url_for('facturas_venta.eliminar_detalle',
+                                                    factura_id=factura.id, detalle_id=detalle.id) }}"
+                                hx-target="#factura-actualizable"
+                                hx-swap="outerHTML"
+                                hx-confirm="¿Eliminar esta línea?"
+                                class="text-red-600 hover:underline text-xs">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8" class="px-3 py-6 text-center text-gray-500">
+                        No hay productos en el borrador. Use el buscador para agregarlos.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

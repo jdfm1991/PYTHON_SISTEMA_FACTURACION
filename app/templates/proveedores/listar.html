@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}proveedores — Sistema de Facturación{% endblock %}
+
+{% block contenido %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">proveedores</h2>
+        <p class="text-sm text-gray-600">Gestión de proveedores del sistema</p>
+    </div>
+    <a href="{{ url_for('proveedores.crear') }}"
+       class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+        + Nuevo proveedor
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white rounded shadow p-4 mb-4 flex flex-wrap items-center gap-3">
+    <input type="text" name="q" value="{{ buscar }}"
+           placeholder="Buscar por razón social o documento..."
+           class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm"
+           hx-get="{{ url_for('proveedores.listar') }}"
+           hx-trigger="keyup changed delay:300ms"
+           hx-target="#tabla-proveedores"
+           hx-include="[name='inactivos']"
+           hx-push-url="true">
+
+    <label class="flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" name="inactivos" value="1"
+               {% if mostrar_inactivos %}checked{% endif %}
+               hx-get="{{ url_for('proveedores.listar') }}"
+               hx-trigger="change"
+               hx-target="#tabla-proveedores"
+               hx-include="[name='q']"
+               hx-push-url="true">
+        Mostrar inactivos
+    </label>
+</div>
+
+<!-- Tabla (parcial reemplazable por HTMX) -->
+<div id="tabla-proveedores">
+    {% include "proveedores/_tabla.html" %}
+</div>
+{% endblock %}

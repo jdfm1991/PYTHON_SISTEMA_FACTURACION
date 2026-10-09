@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmar {{ factura.numero_interno }} — Sistema de Facturación{% endblock %}
+
+{% block contenido %}
+<div class="max-w-5xl mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">
+            Confirmar factura {{ factura.numero_interno }}
+        </h2>
+        <p class="text-sm text-gray-600">
+            Revise los datos antes de emitir. Una vez confirmada, no se podrá editar.
+        </p>
+    </div>
+
+    <!-- Cabecera de la factura -->
+    <div class="bg-white rounded shadow p-4 mb-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div>
+                <p class="text-gray-500">Cliente</p>
+                <p class="font-medium">{{ factura.cliente.razon_social }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">Documento</p>
+                <p class="font-medium">
+                    {{ factura.cliente.tipo_documento }}-{{ factura.cliente.numero_documento }}
+                </p>
+            </div>
+            <div>
+                <p class="text-gray-500">Fecha emisión</p>
+                <p class="font-medium">{{ factura.fecha_emision }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">Tasa de cambio</p>
+                <p class="font-medium">{{ "%.4f"|format(factura.tasa_cambio_valor) }} Bs/USD</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desglose de líneas -->
+    <div class="bg-white rounded shadow overflow-hidden mb-4">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                    <th class="px-3 py-2 text-left">Código</th>
+                    <th class="px-3 py-2 text-left">Producto</th>
+                    <th class="px-3 py-2 text-right">Cantidad</th>
+                    <th class="px-3 py-2 text-right">Precio USD</th>
+                    <th class="px-3 py-2 text-right">IVA</th>
+                    <th class="px-3 py-2 text-right">Total USD</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in factura.detalles %}
+                <tr class="border-t border-gray-100">
+                    <td class="px-3 py-2 font-mono text-xs">{{ detalle.codigo_producto }}</td>
+                    <td class="px-3 py-2">{{ detalle.nombre_producto }}</td>
+                    <td class="px-3 py-2 text-right">{{ "%.3f"|format(detalle.cantidad) }}</td>
+                    <td class="px-3 py-2 text-right">{{ "%.4f"|format(detalle.precio_unitario_usd) }}</td>
+                    <td class="px-3 py-2 text-right">{{ "%.4f"|format(detalle.iva_usd) }}</td>
+                    <td class="px-3 py-2 text-right font-medium">{{ "%.4f"|format(detalle.total_usd) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totales de la factura -->
+    <div class="bg-white rounded shadow p-4 mb-4 flex justify-end">
+        <div class="w-full max-w-sm space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-600">Subtotal USD:</span>
+                <span class="font-medium">{{ "%.4f"|format(factura.subtotal_usd) }}</span>
+            </div>
+            {% if factura.descuento_global_aplicado_usd and factura.descuento_global_aplicado_usd > 0 %}
+            <div class="flex justify-between text-red-600">
+                <span>Descuento global:</span>
+                <span>-{{ "%.4f"|format(factura.descuento_global_aplicado_usd) }}</span>
+            </div>
+            {% endif %}
+            <div class="flex justify-between">
+                <span class="text-gray-600">Base imponible:</span>
+                <span>{{ "%.4f"|format(factura.base_imponible_usd) }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">IVA:</span>
+                <span>{{ "%.4f"|format(factura.iva_usd) }}</span>
+            </div>
+            <div class="flex justify-between border-t border-gray-200 pt-2 text-base font-bold">
+                <span>Total USD:</span>
+                <span>{{ "%.4f"|format(factura.total_usd) }}</span>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500">
+                <span>Total VES:</span>
+                <span>{{ "%.4f"|format(factura.total_ves) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de confirmación -->
+    <form id="form-confirmar" method="POST"
+        action="{{ url_for('facturas_venta.confirmar_post', factura_id=factura.id) }}"
+        class="bg-white rounded shadow p-6 space-y-4">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="pagos_json" id="pagos_json" value="[]">
+
+        <!-- Tipo de venta y fiduciario -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    Tipo de venta *
+                </label>
+                <select name="tipo_venta" id="tipo_venta" required
+                    class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Seleccione —</option>
+                    {% for valor, nombre in tipos_venta %}
+                    <option value="{{ valor }}">{{ nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div id="contenedor-fiduciario" class="hidden">
+                <label class="block text-sm font-medium text-gray-700">
+                    Fiduciario *
+                </label>
+                <select name="fiduciario_id" id="fiduciario_id"
+                    class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Seleccione —</option>
+                    {% for f in fiduciarios %}
+                    <option value="{{ f.id }}">
+                        {{ f.tipo_documento }}-{{ f.numero_documento }} — {{ f.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Aviso de crédito directo -->
+        <div id="aviso-credito-directo"
+            class="hidden bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
+            {% if not factura.cliente.tiene_credito %}
+            <p><strong>Este cliente no tiene crédito habilitado.</strong>
+                Seleccione otro tipo de venta o habilite el crédito del cliente.</p>
+            {% else %}
+            <p><strong>Crédito directo al cliente.</strong>
+                {% if factura.cliente.limite_credito_usd %}
+                Límite: {{ factura.cliente.limite_credito_usd }} USD.
+                {% endif %}
+                {% if factura.cliente.dias_credito %}
+                Plazo: {{ factura.cliente.dias_credito }} días.
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Sección de pagos -->
+        <div class="border-t border-gray-200 pt-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-base font-medium text-gray-900">Pagos</h3>
+                <button type="button" id="btn-agregar-pago"
+                    class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
+                    + Agregar pago
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-600">
+                        <tr>
+                            <th class="px-2 py-1 text-left text-xs">Forma de pago</th>
+                            <th class="px-2 py-1 text-right text-xs">Monto</th>
+                            <th class="px-2 py-1 text-right text-xs">IGTF</th>
+                            <th class="px-2 py-1 text-left text-xs">Referencia</th>
+                            <th class="px-2 py-1 text-right text-xs"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="pagos-body">
+                        <!-- Las filas se agregan dinámicamente por JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <p id="mensaje-pagos-vacio" class="text-xs text-gray-500 italic mt-2">
+                No hay pagos registrados. Si confirma sin pagos, la factura quedará
+                a crédito (Cuenta por Cobrar por el total).
+            </p>
+        </div>
+
+        <!-- Totales en vivo -->
+        <div class="bg-gray-50 rounded p-4 space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-600">Total factura (USD):</span>
+                <span class="font-medium" id="display-total-factura-usd">0.0000</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Total pagado (USD):</span>
+                <span class="font-medium" id="display-total-pagado-usd">0.0000</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">IGTF (USD):</span>
+                <span class="font-medium text-blue-700" id="display-igtf-usd">0.0000</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Saldo pendiente (USD):</span>
+                <span class="font-medium text-red-700" id="display-saldo-usd">0.0000</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Vuelto (USD):</span>
+                <span class="font-medium text-green-700" id="display-vuelto-usd">0.0000</span>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+            <a href="{{ url_for('facturas_venta.editar', factura_id=factura.id) }}"
+                class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                Cancelar
+            </a>
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700">
+                Confirmar factura
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Template para nuevas filas de pago (oculto hasta clonarse) -->
+<template id="template-pago">
+    <tr class="border-t border-gray-100 pago-row">
+        <td class="px-2 py-1">
+            <select class="forma-pago w-full border border-gray-300 rounded px-2 py-1 text-xs"></select>
+        </td>
+        <td class="px-2 py-1">
+            <input type="number" step="0.0001" min="0"
+                class="monto-pago w-32 border border-gray-300 rounded px-2 py-1 text-right text-xs">
+        </td>
+        <td class="px-2 py-1 text-right">
+            <span class="igtf-pago text-xs text-gray-600">0.0000</span>
+        </td>
+        <td class="px-2 py-1">
+            <input type="text" class="referencia-pago w-full border border-gray-300 rounded px-2 py-1 text-xs"
+                placeholder="Nro. transferencia, aprobación, etc.">
+        </td>
+        <td class="px-2 py-1 text-right">
+            <button type="button" class="btn-eliminar-pago text-red-600 hover:underline text-xs">
+                Eliminar
+            </button>
+        </td>
+    </tr>
+</template>
+
+<script>
+    (function () {
+        // ---- Datos inyectados desde Flask ----
+        const FORMAS_PAGO = {{ formas_pago| tojson
+    }};
+    const IGTF_PORCENTAJE = parseFloat({{ igtf_porcentaje| tojson }});
+    const TASA_CAMBIO = parseFloat({{ factura.tasa_cambio_valor | string | tojson }});
+    const TOTAL_FACTURA_USD = parseFloat({{ total_usd_str| tojson }});
+    const TOTAL_FACTURA_VES = parseFloat({{ total_ves_str| tojson }});
+
+    // ---- Referencias al DOM ----
+    const selectTipoVenta = document.getElementById('tipo_venta');
+    const contenedorFiduciario = document.getElementById('contenedor-fiduciario');
+    const selectFiduciario = document.getElementById('fiduciario_id');
+    const avisoCreditoDirecto = document.getElementById('aviso-credito-directo');
+    const pagosBody = document.getElementById('pagos-body');
+    const templatePago = document.getElementById('template-pago');
+    const btnAgregarPago = document.getElementById('btn-agregar-pago');
+    const mensajePagosVacio = document.getElementById('mensaje-pagos-vacio');
+    const inputPagosJson = document.getElementById('pagos_json');
+
+    // ---- Display de totales ----
+    const displayTotalFacturaUsd = document.getElementById('display-total-factura-usd');
+    const displayTotalPagadoUsd = document.getElementById('display-total-pagado-usd');
+    const displayIgtfUsd = document.getElementById('display-igtf-usd');
+    const displaySaldoUsd = document.getElementById('display-saldo-usd');
+    const displayVueltoUsd = document.getElementById('display-vuelto-usd');
+
+    // ---- Utilidades ----
+    function redondear4(n) {
+        return Math.round(n * 10000) / 10000;
+    }
+
+    function formatear4(n) {
+        return (Math.round(n * 10000) / 10000).toFixed(4);
+    }
+
+    function buscarForma(valor) {
+        return FORMAS_PAGO.find(f => f.valor === valor) || null;
+    }
+
+    // ---- Visibilidad según tipo de venta ----
+    function actualizarFormulario() {
+        const tipo = selectTipoVenta.value;
+        contenedorFiduciario.classList.add('hidden');
+        avisoCreditoDirecto.classList.add('hidden');
+        selectFiduciario.required = false;
+
+        if (tipo === 'credito_fiduciario') {
+            contenedorFiduciario.classList.remove('hidden');
+            selectFiduciario.required = true;
+        } else if (tipo === 'credito_directo') {
+            avisoCreditoDirecto.classList.remove('hidden');
+        }
+    }
+
+    // ---- Poblar el select de formas de pago ----
+    function poblarSelectForma(select) {
+        select.innerHTML = '';
+        for (const f of FORMAS_PAGO) {
+            const opt = document.createElement('option');
+            opt.value = f.valor;
+            opt.textContent = f.nombre;
+            select.appendChild(opt);
+        }
+    }
+
+    // ---- Agregar una fila de pago ----
+    function agregarPago(formaDefault, montoDefault) {
+        const clon = templatePago.content.cloneNode(true);
+        const fila = clon.querySelector('.pago-row');
+
+        const selectForma = fila.querySelector('.forma-pago');
+        const inputMonto = fila.querySelector('.monto-pago');
+        const inputReferencia = fila.querySelector('.referencia-pago');
+        const spanIgtf = fila.querySelector('.igtf-pago');
+        const btnEliminar = fila.querySelector('.btn-eliminar-pago');
+
+        poblarSelectForma(selectForma);
+        if (formaDefault) selectForma.value = formaDefault;
+        if (montoDefault) inputMonto.value = montoDefault;
+
+        selectForma.addEventListener('change', recalcular);
+        inputMonto.addEventListener('input', recalcular);
+        btnEliminar.addEventListener('click', function () {
+            fila.remove();
+            recalcular();
+        });
+
+        pagosBody.appendChild(fila);
+        return fila;
+    }
+
+    // ---- Recalcular totales ----
+    function recalcular() {
+        const filas = pagosBody.querySelectorAll('.pago-row');
+
+        let totalPagadoUsd = 0;
+        let igtfTotalUsd = 0;
+
+        for (const fila of filas) {
+            const formaValor = fila.querySelector('.forma-pago').value;
+            const monto = parseFloat(fila.querySelector('.monto-pago').value) || 0;
+            const spanIgtf = fila.querySelector('.igtf-pago');
+
+            const forma = buscarForma(formaValor);
+            if (!forma) continue;
+
+            // La moneda la determina la forma, no el usuario
+            const moneda = forma.moneda;
+
+            let montoUsd = 0;
+            if (moneda === 'USD') {
+                montoUsd = monto;
+            } else {
+                // VES → convertir a USD
+                montoUsd = TASA_CAMBIO > 0 ? redondear4(monto / TASA_CAMBIO) : 0;
+            }
+
+            // IGTF: solo si la forma lo declara y la moneda es USD
+            let igtf = 0;
+            if (forma.aplica_igtf && moneda === 'USD') {
+                igtf = redondear4(montoUsd * IGTF_PORCENTAJE / 100);
+            }
+            spanIgtf.textContent = formatear4(igtf);
+
+            totalPagadoUsd += montoUsd;
+            igtfTotalUsd += igtf;
+        }
+
+        totalPagadoUsd = redondear4(totalPagadoUsd);
+        igtfTotalUsd = redondear4(igtfTotalUsd);
+
+        const saldoUsd = redondear4(Math.max(0, TOTAL_FACTURA_USD - totalPagadoUsd));
+        const vueltoUsd = redondear4(Math.max(0, totalPagadoUsd - TOTAL_FACTURA_USD));
+
+        displayTotalFacturaUsd.textContent = formatear4(TOTAL_FACTURA_USD);
+        displayTotalPagadoUsd.textContent = formatear4(totalPagadoUsd);
+        displayIgtfUsd.textContent = formatear4(igtfTotalUsd);
+        displaySaldoUsd.textContent = formatear4(saldoUsd);
+        displayVueltoUsd.textContent = formatear4(vueltoUsd);
+
+        if (filas.length === 0) {
+            mensajePagosVacio.classList.remove('hidden');
+        } else {
+            mensajePagosVacio.classList.add('hidden');
+        }
+
+        actualizarPagosJson();
+    }
+
+    // ---- Serializar los pagos a JSON ----
+    function actualizarPagosJson() {
+        const filas = pagosBody.querySelectorAll('.pago-row');
+        const pagos = [];
+        for (const fila of filas) {
+            const formaValor = fila.querySelector('.forma-pago').value;
+            const monto = fila.querySelector('.monto-pago').value;
+            const referencia = fila.querySelector('.referencia-pago').value;
+
+            const forma = buscarForma(formaValor);
+            if (!forma || !monto) continue;
+
+            pagos.push({
+                forma_pago: formaValor,
+                moneda_pago: forma.moneda,   // ← derivada de la forma
+                monto: monto,
+                referencia: referencia || null,
+            });
+        }
+        inputPagosJson.value = JSON.stringify(pagos);
+    }
+
+    // ---- Eventos ----
+    selectTipoVenta.addEventListener('change', actualizarFormulario);
+    btnAgregarPago.addEventListener('click', function () {
+        agregarPago('efectivo_ves', '');
+        recalcular();
+    });
+
+    // ---- Inicialización ----
+    actualizarFormulario();
+    // Precargar un pago con el total en VES
+    agregarPago('efectivo_ves', TOTAL_FACTURA_VES.toFixed(4));
+    recalcular();
+}) ();
+</script>
+
+{% endblock %}

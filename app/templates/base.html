@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Facturación{% endblock %}</title>
+
+    <!-- Tailwind CSS vía CDN (solo desarrollo) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- CSS propio (ajustes menores) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+
+    {% block head_extra %}{% endblock %}
+</head>
+
+<body class="bg-gray-100 text-gray-800 min-h-screen flex" hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'>
+
+    <!-- Navegación lateral -->
+    {% include "partials/nav.html" %}
+
+    <!-- Contenido principal -->
+    <main class="flex-1 p-6 overflow-x-auto">
+        <!-- Mensajes flash -->
+        {% include "partials/flash.html" %}
+
+        {% block contenido %}{% endblock %}
+    </main>
+
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

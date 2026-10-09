@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Facturas de Venta — Sistema de Facturación{% endblock %}
+
+{% block contenido %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">Facturas de Venta</h2>
+        <p class="text-sm text-gray-600">Historial de facturas emitidas y borradores</p>
+    </div>
+    <a href="{{ url_for('facturas_venta.crear') }}"
+       class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+        + Nueva factura
+    </a>
+</div>
+
+<div class="bg-white rounded shadow p-4 mb-4 flex flex-wrap items-center gap-3">
+    <input type="text" name="q" value="{{ buscar }}"
+           placeholder="Buscar por número o cliente..."
+           class="flex-1 min-w-[200px] border border-gray-300 rounded px-3 py-2 text-sm"
+           hx-get="{{ url_for('facturas_venta.listar') }}"
+           hx-trigger="keyup changed delay:300ms"
+           hx-target="#tabla-facturas"
+           hx-include="[name='estado']"
+           hx-push-url="true">
+
+    <select name="estado"
+            class="border border-gray-300 rounded px-3 py-2 text-sm"
+            hx-get="{{ url_for('facturas_venta.listar') }}"
+            hx-trigger="change"
+            hx-target="#tabla-facturas"
+            hx-include="[name='q']"
+            hx-push-url="true">
+        <option value="">Todos los estados</option>
+        <option value="borrador" {% if estado == 'borrador' %}selected{% endif %}>Borrador</option>
+        <option value="emitida" {% if estado == 'emitida' %}selected{% endif %}>Emitida</option>
+        <option value="anulada" {% if estado == 'anulada' %}selected{% endif %}>Anulada</option>
+        <option value="pagada" {% if estado == 'pagada' %}selected{% endif %}>Pagada</option>
+    </select>
+</div>
+
+<div id="tabla-facturas">
+    {% include "facturas_venta/_tabla.html" %}
+</div>
+{% endblock %}

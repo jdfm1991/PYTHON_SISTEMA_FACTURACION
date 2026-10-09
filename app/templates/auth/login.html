@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión — Sistema de Facturación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Sistema de Facturación</h1>
+            <p class="text-sm text-gray-500">Inicie sesión para continuar</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for categoria, mensaje in messages %}
+                    {% set colores = {
+                        'success': 'bg-green-100 text-green-800 border-green-300',
+                        'error':   'bg-red-100 text-red-800 border-red-300',
+                        'warning': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+                        'info':    'bg-blue-100 text-blue-800 border-blue-300'
+                    } %}
+                    <div class="border px-4 py-2 rounded mb-4 text-sm {{ colores.get(categoria, colores['info']) }}">
+                        {{ mensaje }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="bg-white rounded shadow p-6 space-y-4">
+            {{ form.hidden_tag() }}
+
+            <div>
+                {{ form.username.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.username(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm",
+                                 autofocus=true) }}
+                {% for e in form.username.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                {{ form.password.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.password(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.password.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            {{ form.submit(class="w-full px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 cursor-pointer") }}
+        </form>
+    </div>
+</body>
+</html>

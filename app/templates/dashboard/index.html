@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Sistema de Facturación{% endblock %}
+
+{% block contenido %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+    <p class="text-sm text-gray-600">Resumen general del sistema</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white rounded shadow p-4">
+        <p class="text-sm text-gray-500">Clientes activos</p>
+        <p class="text-2xl font-bold text-gray-900">{{ total_clientes }}</p>
+    </div>
+    <div class="bg-white rounded shadow p-4">
+        <p class="text-sm text-gray-500">Productos activos</p>
+        <p class="text-2xl font-bold text-gray-900">{{ total_productos }}</p>
+    </div>
+    <div class="bg-white rounded shadow p-4">
+        <p class="text-sm text-gray-500">Facturas de venta</p>
+        <p class="text-2xl font-bold text-gray-900">{{ total_facturas }}</p>
+    </div>
+</div>
+{% endblock %}

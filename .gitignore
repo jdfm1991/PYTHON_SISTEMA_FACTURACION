@@ -1,0 +1,33 @@
+# Entornos virtuales
+venv-web/
+venv-fiscal/
+venv/
+.venv/
+env/
+**/venv*/
+**/.venv*/
+
+# Variables de entorno
+.env
+**/.env
+
+# Logs del agente
+fiscal_agent/logs/*.log
+fiscal_agent/logs/*.log.*
+
+# Base de datos local
+instance/
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db

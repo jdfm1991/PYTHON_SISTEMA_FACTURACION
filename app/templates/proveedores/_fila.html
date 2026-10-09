@@ -1,0 +1,41 @@
+<tr id="proveedor-{{ proveedor.id }}" class="border-t border-gray-100">
+    <td class="px-4 py-2">
+        {{ proveedor.tipo_documento }}-{{ proveedor.numero_documento }}
+    </td>
+    <td class="px-4 py-2 font-medium text-gray-900">
+        {{ proveedor.razon_social }}
+        {% if proveedor.nombre_comercial %}
+            <div class="text-xs text-gray-500">{{ proveedor.nombre_comercial }}</div>
+        {% endif %}
+    </td>
+    <td class="px-4 py-2 text-gray-600">{{ proveedor.telefono or "—" }}</td>
+    <td class="px-4 py-2 text-gray-600">{{ proveedor.email or "—" }}</td>
+    <td class="px-4 py-2 text-center">
+        {% if proveedor.activo %}
+            <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Activo</span>
+        {% else %}
+            <span class="px-2 py-1 text-xs rounded bg-gray-200 text-gray-700">Inactivo</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-2 text-right">
+        <a href="{{ url_for('proveedores.editar', proveedor_id=proveedor.id) }}"
+           class="text-blue-600 hover:underline text-xs">Editar</a>
+
+        {% if proveedor.activo %}
+            <button hx-post="{{ url_for('proveedores.desactivar', proveedor_id=proveedor.id) }}"
+                    hx-target="#proveedor-{{ proveedor.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="¿Desactivar este proveedor?"
+                    class="ml-3 text-red-600 hover:underline text-xs">
+                Desactivar
+            </button>
+        {% else %}
+            <button hx-post="{{ url_for('proveedores.activar', proveedor_id=proveedor.id) }}"
+                    hx-target="#proveedor-{{ proveedor.id }}"
+                    hx-swap="outerHTML"
+                    class="ml-3 text-green-600 hover:underline text-xs">
+                Reactivar
+            </button>
+        {% endif %}
+    </td>
+</tr>

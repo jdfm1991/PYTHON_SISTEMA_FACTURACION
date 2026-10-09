@@ -1,0 +1,68 @@
+<aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+    <div class="p-4 border-b border-gray-200">
+        <h1 class="text-lg font-bold text-gray-900">Facturación</h1>
+        <p class="text-xs text-gray-500">Sistema de Inventario</p>
+    </div>
+
+    <!-- Usuario actual -->
+    {% if current_user.is_authenticated %}
+    <div class="p-3 border-b border-gray-200 bg-gray-50">
+        <p class="text-xs text-gray-500">Sesión</p>
+        <p class="text-sm font-medium text-gray-900 truncate">
+            {{ current_user.nombre_completo or current_user.username }}
+        </p>
+        <p class="text-xs text-gray-500">{{ current_user.rol }}</p>
+        <div class="mt-2 flex gap-2 text-xs">
+            <a href="{{ url_for('auth.perfil') }}" class="text-blue-600 hover:underline">
+                Mi perfil
+            </a>
+            <form method="POST" action="{{ url_for('auth.logout') }}" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="text-red-600 hover:underline">
+                    Salir
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <nav class="flex-1 p-3 space-y-1 text-sm overflow-y-auto">
+        <a href="{{ url_for('main.dashboard') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Dashboard
+        </a>
+        <a href="{{ url_for('clientes.listar') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Clientes
+        </a>
+        <a href="{{ url_for('proveedores.listar') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Proveedores
+        </a>
+        <a href="{{ url_for('fiduciarios.listar') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Fiduciarios
+        </a>
+        <a href="{{ url_for('productos.listar') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Productos
+        </a>
+        <a href="{{ url_for('facturas_venta.listar') }}"
+            class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Facturas de Venta
+        </a>
+        <a href="{{ url_for('facturas_compra.listar') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Facturas de Compra
+        </a>
+        <a href="{{ url_for('tasas_cambio.listar') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Tasas de Cambio
+        </a>
+        <a href="{{ url_for('alicuotas_iva.listar') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+            Alícuotas de IVA
+        </a>
+
+        {% if current_user.is_authenticated and current_user.rol == "admin" %}
+        <div class="pt-2 mt-2 border-t border-gray-200">
+            <p class="px-3 text-xs text-gray-400 uppercase">Admin</p>
+            <a href="{{ url_for('usuarios.listar') }}" class="block px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+                Usuarios
+            </a>
+        </div>
+        {% endif %}
+    </nav>
+</aside>

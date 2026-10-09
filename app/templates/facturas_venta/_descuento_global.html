@@ -1,0 +1,62 @@
+<div class="border-t border-gray-200 pt-3 mt-3">
+    <div class="flex items-center justify-between mb-2">
+        <label class="text-xs text-gray-500">Descuento global</label>
+        {% if factura.descuento_global_porcentaje or factura.descuento_global_monto_usd %}
+            <form method="POST" class="inline"
+                  hx-post="{{ url_for('facturas_venta.descuento_global', factura_id=factura.id) }}"
+                  hx-target="#factura-actualizable"
+                  hx-swap="outerHTML">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="accion" value="quitar">
+                <button type="submit"
+                        class="text-xs text-red-600 hover:underline">
+                    Quitar
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <form hx-post="{{ url_for('facturas_venta.descuento_global', factura_id=factura.id) }}"
+          hx-target="#factura-actualizable"
+          hx-swap="outerHTML"
+          class="flex gap-2 items-end">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="accion" value="aplicar">
+
+        <div class="flex-1">
+            <select name="tipo"
+                    class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                <option value="porcentaje"
+                        {% if factura.descuento_global_porcentaje %}selected{% endif %}>
+                    Porcentaje
+                </option>
+                <option value="monto_usd"
+                        {% if factura.descuento_global_monto_usd %}selected{% endif %}>
+                    Monto USD
+                </option>
+            </select>
+        </div>
+
+        <div class="flex-1">
+            <input type="number" step="0.0001" min="0"
+                   name="valor"
+                   value="{% if factura.descuento_global_porcentaje %}{{ factura.descuento_global_porcentaje }}{% elif factura.descuento_global_monto_usd %}{{ factura.descuento_global_monto_usd }}{% endif %}"
+                   class="w-full border border-gray-300 rounded px-2 py-1 text-xs"
+                   placeholder="0.0000">
+        </div>
+
+        <button type="submit"
+                class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs">
+            Aplicar
+        </button>
+    </form>
+
+    {% if errores_descuento %}
+        {% for campo, errores in errores_descuento.items() %}
+            {% for e in errores %}
+                <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+</div>

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}{{ factura.numero_interno }} — Compra{% endblock %}
+
+{% block contenido %}
+<div class="max-w-5xl mx-auto">
+
+    <!-- Cabecera con acciones -->
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">{{ factura.numero_interno }}</h2>
+            <p class="text-sm text-gray-600">
+                Factura de compra · {{ factura.fecha_emision }}
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{{ url_for('facturas_compra.listar') }}"
+               class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                Volver al listado
+            </a>
+            {% if factura.estado == 'emitida' 
+                  and current_user.is_authenticated 
+                  and current_user.rol in ('admin', 'contador') %}
+                <a href="{{ url_for('facturas_compra.anular_get', factura_id=factura.id) }}"
+                   class="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700">
+                    Anular compra
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Estado -->
+    <div class="bg-white rounded shadow p-4 mb-4">
+        <div class="flex flex-wrap gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">Estado:</span>
+                <span class="ml-2 px-2 py-1 text-xs rounded
+                    {% if factura.estado == 'borrador' %}bg-yellow-100 text-yellow-800
+                    {% elif factura.estado == 'emitida' %}bg-green-100 text-green-800
+                    {% elif factura.estado == 'anulada' %}bg-red-100 text-red-800
+                    {% elif factura.estado == 'pagada' %}bg-blue-100 text-blue-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ factura.estado }}
+                </span>
+            </div>
+            <div>
+                <span class="text-gray-500">Fecha factura proveedor:</span>
+                <span class="ml-2 font-medium">{{ factura.fecha_factura_proveedor or "—" }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Nro. factura proveedor:</span>
+                <span class="ml-2 font-mono">{{ factura.numero_factura_proveedor or "—" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerta de anulación -->
+    {% if factura.estado == 'anulada' %}
+        <div class="bg-red-50 border border-red-200 rounded p-4 mb-4 text-sm text-red-800">
+            <p class="font-bold mb-1">Compra anulada</p>
+            {% if factura.fecha_anulacion %}
+                <p>Fecha: {{ factura.fecha_anulacion.strftime("%Y-%m-%d %H:%M") }}</p>
+            {% endif %}
+            {% if factura.anulada_por %}
+                <p>Anulada por: {{ factura.anulada_por.username }}</p>
+            {% endif %}
+            {% if factura.motivo_anulacion %}
+                <p class="mt-2"><strong>Motivo:</strong> {{ factura.motivo_anulacion }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Proveedor y tasa -->
+    <div class="bg-white rounded shadow p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div>
+            <p class="text-xs text-gray-500 uppercase mb-2">Proveedor</p>
+            <p class="font-medium">{{ factura.proveedor.razon_social }}</p>
+            <p class="text-gray-600">
+                {{ factura.proveedor.tipo_documento }}-{{ factura.proveedor.numero_documento }}
+            </p>
+            {% if factura.proveedor.direccion %}
+                <p class="text-gray-600 text-xs mt-1">{{ factura.proveedor.direccion }}</p>
+            {% endif %}
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 uppercase mb-2">Tasa de cambio</p>
+            <p class="font-medium">{{ "%.4f"|format(factura.tasa_cambio_valor) }} Bs/USD</p>
+        </div>
+    </div>
+
+    <!-- Líneas -->
+    <div class="bg-white rounded shadow overflow-hidden mb-4">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                    <th class="px-3 py-2 text-left">Código</th>
+                    <th class="px-3 py-2 text-left">Producto</th>
+                    <th class="px-3 py-2 text-right">Cantidad</th>
+                    <th class="px-3 py-2 text-right">Precio USD</th>
+                    <th class="px-3 py-2 text-right">IVA %</th>
+                    <th class="px-3 py-2 text-right">IVA USD</th>
+                    <th class="px-3 py-2 text-right">Total USD</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in factura.detalles %}
+                    <tr class="border-t border-gray-100">
+                        <td class="px-3 py-2 font-mono text-xs">{{ detalle.codigo_producto }}</td>
+                        <td class="px-3 py-2">{{ detalle.nombre_producto }}</td>
+                        <td class="px-3 py-2 text-right">{{ "%.3f"|format(detalle.cantidad) }}</td>
+                        <td class="px-3 py-2 text-right">{{ "%.4f"|format(detalle.precio_unitario_usd) }}</td>
+                        <td class="px-3 py-2 text-right">{{ detalle.alicuota_iva_porcentaje }}%</td>
+                        <td class="px-3 py-2 text-right">{{ "%.4f"|format(detalle.iva_usd) }}</td>
+                        <td class="px-3 py-2 text-right font-medium">{{ "%.4f"|format(detalle.total_usd) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totales -->
+    <div class="bg-white rounded shadow p-4 mb-4 flex justify-end">
+        <div class="w-full max-w-sm space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-600">Subtotal USD:</span>
+                <span class="font-medium">{{ "%.4f"|format(factura.subtotal_usd) }}</span>
+            </div>
+            {% if factura.descuento_global_porcentaje or factura.descuento_global_monto_usd %}
+                <div class="flex justify-between text-red-600">
+                    <span>Descuento global:</span>
+                    <span>
+                        {% if factura.descuento_global_porcentaje %}
+                            {{ factura.descuento_global_porcentaje }}%
+                        {% else %}
+                            -{{ "%.4f"|format(factura.descuento_global_monto_usd) }} USD
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
+            <div class="flex justify-between">
+                <span class="text-gray-600">Base imponible:</span>
+                <span>{{ "%.4f"|format(factura.base_imponible_usd) }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">IVA:</span>
+                <span>{{ "%.4f"|format(factura.iva_usd) }}</span>
+            </div>
+            <div class="flex justify-between border-t border-gray-200 pt-2 text-base font-bold">
+                <span>Total USD:</span>
+                <span>{{ "%.4f"|format(factura.total_usd) }}</span>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500">
+                <span>Total VES:</span>
+                <span>{{ "%.4f"|format(factura.total_ves) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagos -->
+    {% if factura.pagos %}
+        <div class="bg-white rounded shadow overflow-hidden mb-4">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                <h3 class="text-sm font-medium text-gray-700">Pagos registrados</h3>
+            </div>
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-gray-600">
+                    <tr>
+                        <th class="px-3 py-2 text-left">Forma</th>
+                        <th class="px-3 py-2 text-left">Moneda</th>
+                        <th class="px-3 py-2 text-right">Monto USD</th>
+                        <th class="px-3 py-2 text-left">Referencia</th>
+                        <th class="px-3 py-2 text-left">Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in factura.pagos %}
+                        <tr class="border-t border-gray-100">
+                            <td class="px-3 py-2 text-xs">{{ pago.forma_pago }}</td>
+                            <td class="px-3 py-2 text-xs">{{ pago.moneda_pago }}</td>
+                            <td class="px-3 py-2 text-right">{{ "%.4f"|format(pago.monto_usd) }}</td>
+                            <td class="px-3 py-2 text-xs text-gray-600">{{ pago.referencia or "—" }}</td>
+                            <td class="px-3 py-2 text-xs text-gray-600">{{ pago.fecha_pago }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    <!-- Cuenta por pagar -->
+    {% if factura.cuenta_por_pagar %}
+        <div class="bg-white rounded shadow p-4 mb-4 text-sm">
+            <h3 class="text-sm font-medium text-gray-700 mb-3">Cuenta por pagar</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                    <p class="text-xs text-gray-500">Acreedor</p>
+                    <p class="font-medium">{{ factura.proveedor.razon_social }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Saldo USD</p>
+                    <p class="font-medium">{{ "%.4f"|format(factura.cuenta_por_pagar.saldo_usd) }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Estado</p>
+                    <p class="font-medium">{{ factura.cuenta_por_pagar.estado }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Vencimiento</p>
+                    <p class="font-medium">{{ factura.cuenta_por_pagar.fecha_vencimiento or "—" }}</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Observaciones -->
+    {% if factura.observaciones %}
+        <div class="bg-white rounded shadow p-4 text-sm">
+            <p class="text-xs text-gray-500 uppercase mb-1">Observaciones</p>
+            <p class="text-gray-700">{{ factura.observaciones }}</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

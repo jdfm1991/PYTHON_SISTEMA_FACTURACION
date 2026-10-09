@@ -1,0 +1,36 @@
+{% if paginacion.pages > 1 %}
+<div class="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-sm bg-gray-50">
+    <div class="text-gray-600">
+        Página {{ paginacion.page }} de {{ paginacion.pages }}
+        ({{ paginacion.total }} productos)
+    </div>
+
+    <div class="flex items-center gap-1">
+        {% if paginacion.has_prev %}
+            <button hx-get="{{ url_for('productos.listar', page=paginacion.prev_num, q=buscar, inactivos='1' if mostrar_inactivos else '0', alicuota=alicuota_id or '') }}"
+                    hx-target="#tabla-productos"
+                    hx-push-url="true"
+                    class="px-3 py-1 border border-gray-300 rounded hover:bg-white">
+                ← Anterior
+            </button>
+        {% else %}
+            <span class="px-3 py-1 border border-gray-200 rounded text-gray-400">
+                ← Anterior
+            </span>
+        {% endif %}
+
+        {% if paginacion.has_next %}
+            <button hx-get="{{ url_for('productos.listar', page=paginacion.next_num, q=buscar, inactivos='1' if mostrar_inactivos else '0', alicuota=alicuota_id or '') }}"
+                    hx-target="#tabla-productos"
+                    hx-push-url="true"
+                    class="px-3 py-1 border border-gray-300 rounded hover:bg-white">
+                Siguiente →
+            </button>
+        {% else %}
+            <span class="px-3 py-1 border border-gray-200 rounded text-gray-400">
+                Siguiente →
+            </span>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

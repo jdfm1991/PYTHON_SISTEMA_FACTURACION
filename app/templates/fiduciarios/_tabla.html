@@ -1,0 +1,25 @@
+<div class="bg-white rounded shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+            <tr>
+                <th class="px-4 py-2 text-left">Documento</th>
+                <th class="px-4 py-2 text-left">Nombre</th>
+                <th class="px-4 py-2 text-left">Contacto</th>
+                <th class="px-4 py-2 text-left">Teléfono</th>
+                <th class="px-4 py-2 text-center">Estado</th>
+                <th class="px-4 py-2 text-right">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in fiduciarios %}
+                {% include "fiduciarios/_fila.html" %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="px-4 py-6 text-center text-gray-500">
+                        No hay fiduciarios que coincidan con el filtro.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

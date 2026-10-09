@@ -1,0 +1,57 @@
+<div id="factura-cabecera" class="bg-white rounded shadow p-4 mb-4">
+    <form hx-post="{{ url_for('facturas_venta.editar_cabecera', factura_id=factura.id) }}"
+          hx-target="#factura-cabecera"
+          hx-swap="outerHTML"
+          hx-trigger="change from:input, change from:select, change from:textarea delay:300ms"
+          class="space-y-3">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="md:col-span-2">
+                <label class="block text-xs text-gray-500 mb-1">Cliente</label>
+                <select name="cliente_id"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    {% for c in form.cliente_id.choices %}
+                        <option value="{{ c[0] }}"
+                                {% if c[0] == factura.cliente_id %}selected{% endif %}>
+                            {{ c[1] }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% for e in form.cliente_id.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Fecha emisión</label>
+                <input type="date" name="fecha_emision"
+                       value="{{ factura.fecha_emision.isoformat() }}"
+                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                {% for e in form.fecha_emision.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Modalidad</label>
+                <select name="modalidad"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    <option value="fiscal" {% if factura.modalidad == 'fiscal' %}selected{% endif %}>Fiscal</option>
+                    <option value="libre" {% if factura.modalidad == 'libre' %}selected{% endif %}>Libre</option>
+                    <option value="digital" {% if factura.modalidad == 'digital' %}selected{% endif %}>Digital</option>
+                </select>
+                {% for e in form.modalidad.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Observaciones</label>
+            <textarea name="observaciones" rows="2"
+                      class="w-full border border-gray-300 rounded px-3 py-2 text-sm">{{ factura.observaciones or "" }}</textarea>
+        </div>
+    </form>
+</div>

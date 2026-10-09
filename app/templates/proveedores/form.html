@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ "Editar proveedor" if proveedor else "Nuevo proveedor" }} — Sistema de Facturación
+{% endblock %}
+
+{% block contenido %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">
+            {{ "Editar proveedor" if proveedor else "Nuevo proveedor" }}
+        </h2>
+        <p class="text-sm text-gray-600">
+            Los campos marcados con * son obligatorios.
+        </p>
+    </div>
+
+    <form method="POST" class="bg-white rounded shadow p-6 space-y-4">
+        {{ form.hidden_tag() }}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                {{ form.tipo_documento.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.tipo_documento(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.tipo_documento.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="md:col-span-2">
+                {{ form.numero_documento.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.numero_documento(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.numero_documento.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div>
+            {{ form.razon_social.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.razon_social(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+            {% for e in form.razon_social.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.nombre_comercial.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.nombre_comercial(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+            {% for e in form.nombre_comercial.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.direccion.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.direccion(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+            {% for e in form.direccion.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                {{ form.telefono.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.telefono(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.telefono.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+            <div>
+                {{ form.email.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.email(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.email.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            {{ form.activo(class="rounded") }}
+            {{ form.activo.label(class="text-sm text-gray-700") }}
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+            <a href="{{ url_for('proveedores.listar') }}"
+               class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                Cancelar
+            </a>
+            {{ form.submit(class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 cursor-pointer") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

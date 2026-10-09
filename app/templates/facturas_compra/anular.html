@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Anular {{ factura.numero_interno }} — Sistema de Facturación{% endblock %}
+
+{% block contenido %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Anular compra</h2>
+        <p class="text-sm text-gray-600">
+            Esta acción no se puede deshacer.
+        </p>
+    </div>
+
+    <!-- Resumen de la compra -->
+    <div class="bg-white rounded shadow p-4 mb-4">
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div>
+                <p class="text-gray-500">Número interno</p>
+                <p class="font-mono font-medium">{{ factura.numero_interno }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">Fecha de emisión</p>
+                <p class="font-medium">{{ factura.fecha_emision }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">Proveedor</p>
+                <p class="font-medium">{{ factura.proveedor.razon_social }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">Total USD</p>
+                <p class="font-medium">{{ "%.4f"|format(factura.total_usd) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advertencia -->
+    <div class="bg-red-50 border border-red-200 rounded p-4 mb-4 text-sm text-red-800">
+        <p class="font-bold mb-1">⚠ Atención</p>
+        <p>Al anular esta compra:</p>
+        <ul class="list-disc ml-5 mt-2 space-y-1">
+            <li>Se descontará del inventario la cantidad comprada.</li>
+            <li>
+                <strong>Si el stock resultante fuera negativo, la anulación será bloqueada.</strong>
+                En ese caso, ajusta el inventario primero.
+            </li>
+            {% if factura.cuenta_por_pagar %}
+                <li>La Cuenta por Pagar quedará marcada como anulada.</li>
+            {% endif %}
+            <li>La compra pasará a estado <strong>anulada</strong>.</li>
+            <li><strong>Esta acción no se puede deshacer.</strong></li>
+        </ul>
+    </div>
+
+    <form method="POST"
+          action="{{ url_for('facturas_compra.anular_post', factura_id=factura.id) }}"
+          class="bg-white rounded shadow p-6 space-y-4">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">
+                Motivo de la anulación *
+            </label>
+            <textarea name="motivo" rows="4" required minlength="10"
+                      placeholder="Describa el motivo (mínimo 10 caracteres)..."
+                      class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
+            <p class="text-xs text-gray-500 mt-1">
+                Mínimo 10 caracteres. Este motivo quedará registrado en la auditoría.
+            </p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+            <a href="{{ url_for('facturas_compra.detalle', factura_id=factura.id) }}"
+               class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                Cancelar
+            </a>
+            <button type="submit"
+                    class="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700">
+                Confirmar anulación
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

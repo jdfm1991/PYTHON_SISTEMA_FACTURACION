@@ -1,0 +1,29 @@
+{% if productos %}
+    <div class="border border-gray-200 rounded max-h-64 overflow-y-auto bg-white shadow">
+        {% for p in productos %}
+            <button type="button"
+                    hx-post="{{ url_for('facturas_compra.agregar_detalle', factura_id=factura_id) }}"
+                    hx-vals='{"producto_id": {{ p.id }}}'
+                    hx-target="#factura-actualizable"
+                    hx-swap="outerHTML"
+                    class="w-full text-left px-3 py-2 hover:bg-blue-50 border-b border-gray-100 text-sm last:border-b-0">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-mono text-xs text-gray-500">{{ p.codigo }}</div>
+                        <div class="text-gray-900 font-medium">{{ p.nombre }}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-medium text-gray-900">
+                            Ref: {{ "%.4f"|format(p.precio_usd) }} USD
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            Stock: {{ "%.3f"|format(p.stock_actual) }}
+                        </div>
+                    </div>
+                </div>
+            </button>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-sm text-gray-500 italic px-3 py-2">Sin resultados.</div>
+{% endif %}

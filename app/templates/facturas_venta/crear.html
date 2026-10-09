@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva factura — Sistema de Facturación{% endblock %}
+
+{% block contenido %}
+<div class="max-w-xl mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Nueva factura de venta</h2>
+        <p class="text-sm text-gray-600">
+            Seleccione el cliente para iniciar el borrador.
+        </p>
+    </div>
+
+    <form method="POST" class="bg-white rounded shadow p-6 space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Cliente</label>
+            <select name="cliente_id"
+                    class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                <option value="">— Seleccione —</option>
+                {% for c in clientes %}
+                    <option value="{{ c.id }}">
+                        {{ c.tipo_documento }}-{{ c.numero_documento }} — {{ c.razon_social }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+            <a href="{{ url_for('facturas_venta.listar') }}"
+               class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                Cancelar
+            </a>
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+                Crear borrador
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

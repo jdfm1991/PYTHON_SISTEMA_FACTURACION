@@ -1,0 +1,16 @@
+# Entornos virtuales
+venv/
+env/
+**/venv/           # cubre fiscal_agent/venv/ también
+
+# Variables de entorno
+.env
+**/.env           # cubre fiscal_agent/.env
+
+# Logs del agente
+fiscal_agent/logs/*.log
+fiscal_agent/logs/*.log.*
+
+# SDK (opcional, si no quieres versionarlo)
+# fiscal_agent/vendor/Tfhka.py
+# fiscal_agent/vendor/*.dll

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ "Editar producto" if producto else "Nuevo producto" }} — Sistema de Facturación
+{% endblock %}
+
+{% block contenido %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">
+            {{ "Editar producto" if producto else "Nuevo producto" }}
+        </h2>
+        <p class="text-sm text-gray-600">
+            Los campos marcados con * son obligatorios.
+            El stock solo se modifica por movimientos de inventario.
+        </p>
+    </div>
+
+    <form method="POST" class="bg-white rounded shadow p-6 space-y-4">
+        {{ form.hidden_tag() }}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                {{ form.codigo.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.codigo(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.codigo.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+            <div class="md:col-span-2">
+                {{ form.nombre.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.nombre(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.nombre.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div>
+            {{ form.descripcion.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.descripcion(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm", rows=3) }}
+            {% for e in form.descripcion.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                {{ form.precio_usd.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.precio_usd(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.precio_usd.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+            <div>
+                {{ form.alicuota_iva_id.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.alicuota_iva_id(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.alicuota_iva_id.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+            <div>
+                {{ form.stock_minimo.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.stock_minimo(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.stock_minimo.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if producto %}
+            <div class="bg-gray-50 rounded p-3 text-sm">
+                <span class="text-gray-500">Stock actual:</span>
+                <span class="font-medium text-gray-900">
+                    {{ "%.3f"|format(producto.stock_actual) }}
+                </span>
+                <span class="text-xs text-gray-500 ml-2">
+                    (solo modificable por movimientos de inventario)
+                </span>
+            </div>
+        {% endif %}
+
+        <div class="flex items-center gap-2">
+            {{ form.activo(class="rounded") }}
+            {{ form.activo.label(class="text-sm text-gray-700") }}
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+            <a href="{{ url_for('productos.listar') }}"
+               class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                Cancelar
+            </a>
+            {{ form.submit(class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 cursor-pointer") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

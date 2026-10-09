@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ factura.numero_interno }} — Compra{% endblock %}
+
+{% block contenido %}
+<div class="mb-4 flex items-center justify-between">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">{{ factura.numero_interno }}</h2>
+        <p class="text-sm text-gray-600">
+            Compra · Tasa: {{ "%.4f"|format(factura.tasa_cambio_valor) }} Bs/USD
+        </p>
+    </div>
+    <div class="flex gap-2">
+        <button onclick="if(confirm('¿Cancelar este borrador? Se eliminará.'))
+                         document.getElementById('form-cancelar').submit();"
+            class="px-4 py-2 border border-red-300 text-red-700 rounded text-sm hover:bg-red-50">
+            Cancelar borrador
+        </button>
+        <a href="{{ url_for('facturas_compra.confirmar_get', factura_id=factura.id) }}"
+            class="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700">
+            Confirmar factura
+        </a>
+    </div>
+</div>
+
+<form id="form-cancelar" method="POST" action="{{ url_for('facturas_compra.cancelar', factura_id=factura.id) }}"
+    class="hidden">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+
+<!-- Cabecera editable -->
+{% include "facturas_compra/_cabecera_editable.html" %}
+
+<!-- Búsqueda de productos -->
+{% include "facturas_compra/_busqueda_productos.html" %}
+
+<!-- Fragmento actualizable -->
+{% include "facturas_compra/_fragmento_actualizable.html" %}
+{% endblock %}

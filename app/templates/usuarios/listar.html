@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios — Sistema de Facturación{% endblock %}
+
+{% block contenido %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">Usuarios</h2>
+        <p class="text-sm text-gray-600">Gestión de usuarios del sistema</p>
+    </div>
+    <a href="{{ url_for('usuarios.crear') }}"
+       class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+        + Nuevo usuario
+    </a>
+</div>
+
+<div class="bg-white rounded shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+            <tr>
+                <th class="px-4 py-2 text-left">Usuario</th>
+                <th class="px-4 py-2 text-left">Nombre</th>
+                <th class="px-4 py-2 text-left">Email</th>
+                <th class="px-4 py-2 text-left">Rol</th>
+                <th class="px-4 py-2 text-center">Estado</th>
+                <th class="px-4 py-2 text-right">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+                <tr class="border-t border-gray-100">
+                    <td class="px-4 py-2 font-mono text-xs text-gray-900">
+                        {{ usuario.username }}
+                    </td>
+                    <td class="px-4 py-2 text-gray-900">
+                        {{ usuario.nombre_completo or "—" }}
+                    </td>
+                    <td class="px-4 py-2 text-gray-600 text-xs">
+                        {{ usuario.email or "—" }}
+                    </td>
+                    <td class="px-4 py-2">
+                        <span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
+                            {{ usuario.rol }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                        {% if usuario.activo %}
+                            <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Activo</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs rounded bg-gray-200 text-gray-700">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2 text-right space-x-2">
+                        <a href="{{ url_for('usuarios.editar', usuario_id=usuario.id) }}"
+                           class="text-blue-600 hover:underline text-xs">Editar</a>
+                        <a href="{{ url_for('usuarios.reset_password', usuario_id=usuario.id) }}"
+                           class="text-yellow-600 hover:underline text-xs">Reset password</a>
+
+                        {% if usuario.id != current_user.id %}
+                            {% if usuario.activo %}
+                                <form method="POST" class="inline"
+                                      action="{{ url_for('usuarios.desactivar', usuario_id=usuario.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                            onclick="return confirm('¿Desactivar este usuario?')"
+                                            class="text-red-600 hover:underline text-xs">
+                                        Desactivar
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="POST" class="inline"
+                                      action="{{ url_for('usuarios.activar', usuario_id=usuario.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                            class="text-green-600 hover:underline text-xs">
+                                        Reactivar
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

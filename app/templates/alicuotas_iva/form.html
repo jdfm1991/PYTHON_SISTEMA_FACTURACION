@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Editar alícuota — Sistema de Facturación{% endblock %}
+
+{% block contenido %}
+<div class="max-w-xl mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Editar alícuota</h2>
+        <p class="text-sm text-gray-600">
+            Solo puedes modificar el porcentaje. El código y la descripción
+            están fijados por la categoría fiscal.
+        </p>
+    </div>
+
+    <div class="bg-white rounded shadow p-6 space-y-4">
+        <!-- Datos inmutables (solo lectura, no son parte del form) -->
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <p class="text-gray-500">Código</p>
+                <p class="font-mono text-gray-900">{{ alicuota.codigo }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">Descripción</p>
+                <p class="text-gray-900">{{ alicuota.descripcion }}</p>
+            </div>
+        </div>
+
+        <hr class="border-gray-200">
+
+        <form method="POST" class="space-y-4">
+            {{ form.hidden_tag() }}
+
+            <div>
+                {{ form.porcentaje.label(class="block text-sm font-medium text-gray-700") }}
+                {{ form.porcentaje(class="mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+                {% for e in form.porcentaje.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+                <a href="{{ url_for('alicuotas_iva.listar') }}"
+                   class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                    Cancelar
+                </a>
+                {{ form.submit(class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 cursor-pointer") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+<div class="bg-white rounded shadow p-4 mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+        Agregar producto
+    </label>
+    <input type="text" id="buscador-productos"
+           placeholder="Escriba código o nombre del producto..."
+           autocomplete="off"
+           name="q"
+           class="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+           hx-get="{{ url_for('facturas_compra.buscar_productos', factura_id=factura.id) }}"
+           hx-trigger="keyup changed delay:300ms"
+           hx-target="#resultados-busqueda"
+           hx-include="this">
+    <div id="resultados-busqueda" class="mt-2"></div>
+</div>

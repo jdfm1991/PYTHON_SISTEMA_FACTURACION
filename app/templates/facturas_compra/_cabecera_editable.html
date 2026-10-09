@@ -1,0 +1,57 @@
+<div id="factura-cabecera" class="bg-white rounded shadow p-4 mb-4">
+    <form hx-post="{{ url_for('facturas_compra.editar_cabecera', factura_id=factura.id) }}"
+          hx-target="#factura-cabecera"
+          hx-swap="outerHTML"
+          hx-trigger="change delay:300ms"
+          class="space-y-3">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="md:col-span-2">
+                <label class="block text-xs text-gray-500 mb-1">Proveedor</label>
+                <select name="proveedor_id"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    {% for p in form.proveedor_id.choices %}
+                        <option value="{{ p[0] }}"
+                                {% if p[0] == factura.proveedor_id %}selected{% endif %}>
+                            {{ p[1] }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% for e in form.proveedor_id.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Fecha emisión</label>
+                <input type="date" name="fecha_emision"
+                       value="{{ factura.fecha_emision.isoformat() }}"
+                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Nro. factura proveedor</label>
+                <input type="text" name="numero_factura_proveedor"
+                       value="{{ factura.numero_factura_proveedor or '' }}"
+                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Fecha factura proveedor</label>
+                <input type="date" name="fecha_factura_proveedor"
+                       value="{{ factura.fecha_factura_proveedor.isoformat() if factura.fecha_factura_proveedor else '' }}"
+                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Observaciones</label>
+            <textarea name="observaciones" rows="2"
+                      class="w-full border border-gray-300 rounded px-3 py-2 text-sm">{{ factura.observaciones or "" }}</textarea>
+        </div>
+    </form>
+</div>

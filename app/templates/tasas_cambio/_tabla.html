@@ -1,0 +1,49 @@
+<div class="bg-white rounded shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+            <tr>
+                <th class="px-4 py-2 text-left">Fecha</th>
+                <th class="px-4 py-2 text-right">Tasa BCV</th>
+                <th class="px-4 py-2 text-right">Tasa paralela</th>
+                <th class="px-4 py-2 text-left">Fuente</th>
+                <th class="px-4 py-2 text-right">Facturas</th>
+                <th class="px-4 py-2 text-right">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tasa in paginacion.items %}
+                <tr class="border-t border-gray-100">
+                    <td class="px-4 py-2 font-mono text-xs text-gray-900">
+                        {{ tasa.fecha }}
+                    </td>
+                    <td class="px-4 py-2 text-right font-medium">
+                        {{ "%.4f"|format(tasa.tasa_bcv) }}
+                    </td>
+                    <td class="px-4 py-2 text-right text-gray-600">
+                        {{ "%.4f"|format(tasa.tasa_paralela) if tasa.tasa_paralela else "—" }}
+                    </td>
+                    <td class="px-4 py-2 text-gray-600 text-xs">
+                        {{ tasa.fuente or "—" }}
+                    </td>
+                    <td class="px-4 py-2 text-right text-gray-600 text-xs">
+                        {{ conteos.get(tasa.id, 0) }}
+                    </td>
+                    <td class="px-4 py-2 text-right">
+                        <a href="{{ url_for('tasas_cambio.editar', tasa_id=tasa.id) }}"
+                           class="text-blue-600 hover:underline text-xs">
+                            Editar
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="px-4 py-6 text-center text-gray-500">
+                        No hay tasas registradas en el rango seleccionado.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "tasas_cambio/_paginacion.html" %}
+</div>

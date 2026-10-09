@@ -1,0 +1,84 @@
+<div class="bg-white rounded shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+            <tr>
+                <th class="px-4 py-2 text-left">Número</th>
+                <th class="px-4 py-2 text-left">Cliente</th>
+                <th class="px-4 py-2 text-left">Fecha</th>
+                <th class="px-4 py-2 text-right">Total USD</th>
+                <th class="px-4 py-2 text-right">Total VES</th>
+                <th class="px-4 py-2 text-center">Estado</th>
+                <th class="px-4 py-2 text-right">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factura in paginacion.items %}
+            <tr class="border-t border-gray-100">
+                <td class="px-4 py-2 font-mono text-xs text-gray-900">
+                    {{ factura.numero_interno }}
+                    {% if factura.numero_fiscal %}
+                    <div class="text-xs text-gray-500">
+                        Fiscal: {{ factura.serie }}-{{ factura.numero_fiscal }}
+                    </div>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2">{{ factura.cliente.razon_social }}</td>
+                <td class="px-4 py-2 text-gray-600 text-xs">{{ factura.fecha_emision }}</td>
+                <td class="px-4 py-2 text-right">{{ "%.2f"|format(factura.total_usd) }}</td>
+                <td class="px-4 py-2 text-right">{{ "%.2f"|format(factura.total_ves) }}</td>
+                <td class="px-4 py-2 text-center">
+                    <span class="px-2 py-1 text-xs rounded
+                            {% if factura.estado == 'borrador' %}bg-yellow-100 text-yellow-800
+                            {% elif factura.estado == 'emitida' %}bg-green-100 text-green-800
+                            {% elif factura.estado == 'anulada' %}bg-red-100 text-red-800
+                            {% elif factura.estado == 'pagada' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ factura.estado }}
+                    </span>
+                </td>
+                <td class="px-4 py-2 text-right space-x-2">
+                    {% if factura.estado == 'borrador' %}
+                    <a href="{{ url_for('facturas_venta.editar', factura_id=factura.id) }}"
+                        class="text-blue-600 hover:underline text-xs">Editar</a>
+                    {% else %}
+                    <a href="{{ url_for('facturas_venta.detalle', factura_id=factura.id) }}"
+                        class="text-blue-600 hover:underline text-xs">Ver</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="px-4 py-6 text-center text-gray-500">
+                    No hay facturas que coincidan con los filtros.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if paginacion.pages > 1 %}
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-sm bg-gray-50">
+        <div class="text-gray-600">
+            Página {{ paginacion.page }} de {{ paginacion.pages }}
+        </div>
+        <div class="flex gap-1">
+            {% if paginacion.has_prev %}
+            <button
+                hx-get="{{ url_for('facturas_venta.listar', page=paginacion.prev_num, q=buscar, estado=estado or '') }}"
+                hx-target="#tabla-facturas" hx-push-url="true"
+                class="px-3 py-1 border border-gray-300 rounded hover:bg-white">
+                ← Anterior
+            </button>
+            {% endif %}
+            {% if paginacion.has_next %}
+            <button
+                hx-get="{{ url_for('facturas_venta.listar', page=paginacion.next_num, q=buscar, estado=estado or '') }}"
+                hx-target="#tabla-facturas" hx-push-url="true"
+                class="px-3 py-1 border border-gray-300 rounded hover:bg-white">
+                Siguiente →
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

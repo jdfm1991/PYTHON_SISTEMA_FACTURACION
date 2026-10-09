@@ -1,0 +1,1 @@
+"""Módulo de seguridad: permisos y decoradores."""
